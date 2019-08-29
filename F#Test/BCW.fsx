@@ -1,7 +1,9 @@
+////Type Definitions:
 //Classification types
 type Class =
     | Benign
     | Malignant
+
 //Data format for sample data
 type Data ={
     id:int
@@ -16,32 +18,12 @@ type Data ={
     mitoses:int // 1 - 10
     cls:Class //2 or 4
 } 
+
 //type alias for the training set
 type DataSet = Data seq
-//training set
-let dataSet =
-    [
-        {id = 1000025; clumpT = 5; cellsizeuniform = 1; cellshapeuniform = 1; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign}
-        {id = 1002945; clumpT = 5; cellsizeuniform = 4; cellshapeuniform = 4; margadhesion = 5; SECS = 7; barenuclei = 10; blandchromatin = 3; normalnucleoli = 2; mitoses = 1; cls = Benign}
-        {id = 1015425; clumpT = 3; cellsizeuniform = 1; cellshapeuniform = 1; margadhesion = 1; SECS = 2; barenuclei = 2; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign}
-        {id = 1016277; clumpT = 6; cellsizeuniform = 8; cellshapeuniform = 8; margadhesion = 1; SECS = 3; barenuclei = 4; blandchromatin = 3; normalnucleoli = 7; mitoses = 1; cls = Benign}
-        {id = 1017023; clumpT = 4; cellsizeuniform = 1; cellshapeuniform = 1; margadhesion = 3; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign}
-        {id = 1017122; clumpT = 8; cellsizeuniform = 10; cellshapeuniform = 10; margadhesion = 8; SECS = 7; barenuclei = 10; blandchromatin = 9; normalnucleoli = 7; mitoses = 1; cls = Malignant}
-        {id = 1018099; clumpT = 1; cellsizeuniform = 1; cellshapeuniform = 1; margadhesion = 1; SECS = 2; barenuclei = 10; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign}
-    ] 
-////Worked out examples:
-
-// Q(Pretty) = 3.0/7.0 => 0.429
-// Q(Ugly) = 4.0/7.0 => 0.571
-
-// F(White,Pretty) = (0.0+1.0)/(3.0+1.0) = 0.25
-// F(White,Ugly) = (2.0+1.0)/(4.0+1.0) =   0.60
-// F(Red,Pretty) = (1.0+1.0)/(3.0+1.0) =   0.50
-// F(Red,Ugly) = (2.0+1.0)/(4.0+1.0) =     0.60
-// F(Purple,Pretty) = (2.0+1.0)/(3.0+1.0) =0.75
-// F(Purple,Ugly) = (0.0+1.0)/(4.0+1.0) =  0.20
 ////
 
+////Functions:
 //#{pred} = the count of elements in the set that pred is true
 //Implements #{pred}
 let filteredCount pred (s:'a seq) = s |> Seq.filter pred |> Seq.length
@@ -58,8 +40,6 @@ let F (dataSet:DataSet) d Aj ak cls =
     let pred (x:Data) = (Aj x = ak) && (x.cls = cls) // determines the predicate of the F function
 
     (float ((filteredCount pred dataSet)+1)) / (float (Nc + d)) // executes the function F
-
-//F dataSet 1 (fun x -> x.color) Purple Pretty
 
 //Implements C(x) = Q(C=ci)*Product(F(Aj=ak,C=ci)) from j=1 to d
 // Finds the likeliness that the sample data point is of the class "cls".
@@ -93,35 +73,9 @@ let classify (dataSet:DataSet) (sample:Data) =
     |> Seq.map (fun (cls,factor) -> printfn "class: %A factor: %A" cls factor; (cls,factor)) //Will print the likelihood of each class type (for debugging)
     |> Seq.maxBy (snd) // get the maximum based on the FACTOR only
     |> fst // return just the class (no factor)
-    
+////    
 
-
-//// Testing Debug
-// let parts (text:string) =
-//    text.Split [|','|]
-//
-// "1018561,2,1,2,1,2,1,3,1,1,2"
-// |> parts
-// |> Array.toList
-// |> List.mapi (fun i x -> 
-//     match i with
-//     | 0 -> "id = " + x
-//     | 1 -> "clumpT = " + x
-//     | 2 -> "cellsizeuniform = " + x
-//     | 3 -> "cellshapeuniform = " + x
-//     | 4 -> "margadhesion = " + x
-//     | 5 -> "SECS = " + x
-//     | 6 -> "barenuclei = " + x
-//     | 7 -> "blandchromatin = " + x
-//     | 8 -> "normalnucleoli = " + x
-//     | 9 -> "mitoses = " + x
-//     |10 -> "cls = "+ (if x = "2" then "Benign" else "Malignant" )
-//     | _ -> x
-//  )
-//  |> List.fold (fun s x -> (s + "; " + x)) ""
-////
-
-// To Read data:
+//Reads data and assigns to trainingDataSet:
 let trainingDataSet =
     System.IO.File.ReadAllLines(@"D:\Fall2019\Machine Learning\Project 1\Data\1\breast-cancer-wisconsin.data") // this give you back a set of line from the file (replace with your directory)
     |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim())) // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
