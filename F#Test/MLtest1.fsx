@@ -94,3 +94,26 @@ let classify (dataSet:DataSet) (sample:Data) =
 classify dataSet { id = 0; color = Purple; ``class`` = Class.Ugly} // Run for result
 let rnd = System.Random()
 rnd.Next()
+
+let filebc = @"E:\Project 1\Data\1\breast-cancer-wisconsin.data"
+let filei = @"E:\Project 1\Data\3\iris.data"
+let fileg = @"E:\Project 1\Data\2\glass.data"
+let filesb = @"E:\Project 1\Data\4\soybean-large.data"
+let filehv84 = @"E:\Project 1\Data\5\house-votes-84.data"
+
+let missing file = 
+    System.IO.File.ReadAllLines(file) // this give you back a set of line from the file (replace with your directory)
+    |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim())) // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
+    |> Seq.filter (Seq.exists(fun f -> f="?"))   //This filters out all lines that contain a "?"
+    |> Seq.length
+let notMissing file = 
+    System.IO.File.ReadAllLines(@"E:\Project 1\Data\1\breast-cancer-wisconsin.data") // this give you back a set of line from the file (replace with your directory)
+    |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim())) // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
+    |> Seq.filter (Seq.exists(fun f -> f="?")>>not)   //This filters out all lines that contain a "?"
+    |> Seq.length
+
+let percentMissing file = ((float (missing file)/float((notMissing file)+(missing file)))*100.0)
+
+[filebc;filei;fileg;filesb;filehv84]
+|> Seq.map (fun x -> percentMissing x)
+|> Seq.map (fun x -> printfn "%f" x)
