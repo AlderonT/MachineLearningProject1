@@ -77,7 +77,7 @@ let classify (dataSet:DataSet) (sample:Data) =
 
 //Reads data and assigns to trainingDataSet:
 let trainingDataSet =
-    System.IO.File.ReadAllLines(@"D:\Fall2019\Machine Learning\Project 1\Data\1\breast-cancer-wisconsin.data") // this give you back a set of line from the file (replace with your directory)
+    System.IO.File.ReadAllLines(@"E:\Project 1\Data\1\breast-cancer-wisconsin.data") // this give you back a set of line from the file (replace with your directory)
     |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim())) // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
     |> Seq.filter (Seq.exists(fun f -> f="?") >> not)   //This filters out all lines that contain a "?"
     |> Seq.map (fun fields ->   //This will map the lines to objects returning a seqence of datapoints (or a DataSet as defined above)
@@ -92,8 +92,14 @@ let trainingDataSet =
             blandchromatin = fields.[7] |> System.Int32.Parse // 1 - 10
             normalnucleoli = fields.[8] |> System.Int32.Parse // 1 - 10
             mitoses = fields.[9] |> System.Int32.Parse // 1 - 10
-            cls = fields.[10] |> (fun x -> if x = "2" then Benign else Malignant)
+            cls = fields.[10] |> (fun x ->
+                 match x with
+                 | "2" -> Benign
+                 | "4" -> Malignant
+                 | _ -> Malignant
+             )
         }
     )
 
 classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
+
