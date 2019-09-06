@@ -113,8 +113,8 @@ let getRandomFolds k (dataSet:'a seq) = //k is the number of slices dataset is t
         else
             let idx = rnd.Next(0,data.Count)    //get a random index between 0 and |data|
             let e = data.[idx]                  //get the element e from idx
-            data.RemoveAt(idx) |> ignore        //
-            Some e
+            data.RemoveAt(idx) |> ignore        //remove the element e from data
+            Some e                              //return e
     let folds = Array.init k (fun _ -> Seq.empty)       //resultant folds array init as an empty seq
     let rec generate  j =                               //recursively generate an array that increments on j (think like a while loop)
         match getRandomElement() with                   //match the random element with:
