@@ -45,16 +45,17 @@ let F (dataSet:DataSet) d Aj ak cls =
 // Finds the likeliness that the sample data point is of the class "cls".
 let C (dataSet:DataSet) (cls:Class) (sample:Data) = 
     //for more than one attribute, additional F parts will need to be added
+    let d = 9   //number of attributes
     (Q dataSet cls)
-    *(F dataSet 1 (fun x -> x.clumpT) sample.clumpT cls)
-    *(F dataSet 1 (fun x -> x.cellsizeuniform) sample.cellsizeuniform cls)
-    *(F dataSet 1 (fun x -> x.cellshapeuniform) sample.cellshapeuniform cls)
-    *(F dataSet 1 (fun x -> x.margadhesion) sample.margadhesion cls)
-    *(F dataSet 1 (fun x -> x.SECS) sample.SECS cls)
-    *(F dataSet 1 (fun x -> x.barenuclei) sample.barenuclei cls)
-    *(F dataSet 1 (fun x -> x.blandchromatin) sample.blandchromatin cls)
-    *(F dataSet 1 (fun x -> x.normalnucleoli) sample.normalnucleoli cls)
-    *(F dataSet 1 (fun x -> x.mitoses) sample.mitoses cls)
+    *(F dataSet d (fun x -> x.clumpT) sample.clumpT cls)
+    *(F dataSet d (fun x -> x.cellsizeuniform) sample.cellsizeuniform cls)
+    *(F dataSet d (fun x -> x.cellshapeuniform) sample.cellshapeuniform cls)
+    *(F dataSet d (fun x -> x.margadhesion) sample.margadhesion cls)
+    *(F dataSet d (fun x -> x.SECS) sample.SECS cls)
+    *(F dataSet d (fun x -> x.barenuclei) sample.barenuclei cls)
+    *(F dataSet d (fun x -> x.blandchromatin) sample.blandchromatin cls)
+    *(F dataSet d (fun x -> x.normalnucleoli) sample.normalnucleoli cls)
+    *(F dataSet d (fun x -> x.mitoses) sample.mitoses cls)
     //let d = number of attributes
     //(Q dataSet cls)
     //*(F dataSet d (fun x -> x.att1) sample.att1 cls)
