@@ -45,6 +45,7 @@ type Data ={
     a33:int  
     a34:int  
     cls:Class
+    raw:string []
 } 
 
 //type alias for the training set
@@ -73,7 +74,7 @@ let F (dataSet:DataSet) d Aj ak cls =
 // Finds the likeliness that the sample data point is of the class "cls".
 let C (dataSet:DataSet) (cls:Class) (sample:Data) = 
     //for more than one attribute, additional F parts will need to be added
-    let d = 35   //number of attributes
+    let d = 35-14   //number of attributes - the number of singleton values
     (Q dataSet cls)
     *(F dataSet d (fun x -> x.a0) sample.a0 cls)
     *(F dataSet d (fun x -> x.a1) sample.a1 cls)
@@ -85,15 +86,15 @@ let C (dataSet:DataSet) (cls:Class) (sample:Data) =
     *(F dataSet d (fun x -> x.a7) sample.a7 cls)
     *(F dataSet d (fun x -> x.a8) sample.a8 cls)
     *(F dataSet d (fun x -> x.a9) sample.a9 cls)
-    *(F dataSet d (fun x -> x.a10) sample.a10 cls)
-    *(F dataSet d (fun x -> x.a11) sample.a11 cls)
-    *(F dataSet d (fun x -> x.a12) sample.a12 cls)
-    *(F dataSet d (fun x -> x.a13) sample.a13 cls)
-    *(F dataSet d (fun x -> x.a14) sample.a14 cls)
-    *(F dataSet d (fun x -> x.a15) sample.a15 cls)
-    *(F dataSet d (fun x -> x.a16) sample.a16 cls)
-    *(F dataSet d (fun x -> x.a17) sample.a17 cls)
-    *(F dataSet d (fun x -> x.a18) sample.a18 cls)
+    // *(F dataSet d (fun x -> x.a10) sample.a10 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a11) sample.a11 cls)  
+    // *(F dataSet d (fun x -> x.a12) sample.a12 cls)    //Not relavent
+    // *(F dataSet d (fun x -> x.a13) sample.a13 cls)    //Not relavent
+    // *(F dataSet d (fun x -> x.a14) sample.a14 cls)    //Not relavent
+    // *(F dataSet d (fun x -> x.a15) sample.a15 cls)    //Not relavent
+    // *(F dataSet d (fun x -> x.a16) sample.a16 cls)    //Not relavent
+    // *(F dataSet d (fun x -> x.a17) sample.a17 cls)    //Not relavent
+    // *(F dataSet d (fun x -> x.a18) sample.a18 cls)    //Not relavent
     *(F dataSet d (fun x -> x.a19) sample.a19 cls)
     *(F dataSet d (fun x -> x.a20) sample.a20 cls)
     *(F dataSet d (fun x -> x.a21) sample.a21 cls)
@@ -103,12 +104,12 @@ let C (dataSet:DataSet) (cls:Class) (sample:Data) =
     *(F dataSet d (fun x -> x.a25) sample.a25 cls)
     *(F dataSet d (fun x -> x.a26) sample.a26 cls)
     *(F dataSet d (fun x -> x.a27) sample.a27 cls)
-    *(F dataSet d (fun x -> x.a28) sample.a28 cls)
-    *(F dataSet d (fun x -> x.a29) sample.a29 cls)
-    *(F dataSet d (fun x -> x.a30) sample.a30 cls)
-    *(F dataSet d (fun x -> x.a31) sample.a31 cls)
-    *(F dataSet d (fun x -> x.a32) sample.a32 cls)
-    *(F dataSet d (fun x -> x.a33) sample.a33 cls)
+    // *(F dataSet d (fun x -> x.a28) sample.a28 cls)    //Not relavent
+    // *(F dataSet d (fun x -> x.a29) sample.a29 cls)    //Not relavent
+    // *(F dataSet d (fun x -> x.a30) sample.a30 cls)    //Not relavent
+    // *(F dataSet d (fun x -> x.a31) sample.a31 cls)    //Not relavent
+    // *(F dataSet d (fun x -> x.a32) sample.a32 cls)    //Not relavent
+    // *(F dataSet d (fun x -> x.a33) sample.a33 cls)    //Not relavent
     *(F dataSet d (fun x -> x.a34) sample.a34 cls)
     
     //let d = number of attributes
@@ -121,6 +122,8 @@ let C (dataSet:DataSet) (cls:Class) (sample:Data) =
 
 //Actually classifies a sample datapoint into a class.
 let classify (dataSet:DataSet) (sample:Data) =
+    if dataSet |> Seq.isEmpty then failwithf "dataSet is EMPTY!"
+
     [
         Class.D1 // this should be a list of all possible classifications
         Class.D2
@@ -128,7 +131,7 @@ let classify (dataSet:DataSet) (sample:Data) =
         Class.D4
     ]
     |> Seq.map (fun cls -> cls, C dataSet cls sample)   //maps the class to the likeliness
-    |> Seq.map (fun (cls,factor) -> printfn "class: %A factor: %A" cls factor; (cls,factor)) //Will print the likelihood of each class type (for debugging)
+    //|> Seq.map (fun (cls,factor) -> printfn "class: %A factor: %A" cls factor; (cls,factor)) //Will print the likelihood of each class type (for debugging)
     |> Seq.maxBy (snd) // get the maximum based on the FACTOR only
     |> fst // return just the class (no factor)
 ////    
@@ -201,7 +204,7 @@ let doKFold k (dataSet:Data seq)=           //This is where we do the k-folding 
             |> Seq.collect snd              //now we grab the seqence from the tuple
         applyKFold trainingSet validationSet//Finally lets apply our function above "applyKFold" to our training set and validation set
     )
-    |> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
+    //|> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
     |> Seq.average                          //the result is a seq of floats so we'll just get the average our % failuresto give us a result to our k-fold analysis as the accuracy of our algorithm
 
 ////
@@ -249,7 +252,7 @@ let trainingDataSet =
             a32 = fields.[32] |> System.Int32.Parse  
             a33 = fields.[33] |> System.Int32.Parse  
             a34 = fields.[34] |> System.Int32.Parse   
-            cls = fields.[34] |> (fun x -> 
+            cls = fields.[35] |> (fun x -> 
                  match x with
                  | "D1" -> D1 // if D1 then D1
                  | "D2" -> D2 // ...
@@ -257,20 +260,57 @@ let trainingDataSet =
                  | "D4" -> D4 // ...
                  | _ -> D1    // if it's anything else then make it a D1 (I need a default case)
              )
+            raw=fields
         }
     )
 
-trainingDataSet
-|>Seq.map(fun x -> 
-    trainingDataSet
-    |> Seq.filter (fun y -> y<>x)
-    |> (fun t -> classify t x)
-)
+// Seq.init (trainingDataSet|>Seq.head).raw.Length (fun idx ->    
+//     idx,
+//     trainingDataSet
+//     |>Seq.countBy (fun x -> x.raw.[idx])
+// )
+// |> Seq.filter (fun (x,y)-> (y|>Seq.length >1))
+// |>Seq.map (snd>>Seq.length)
+// |>Seq.toArray
+
+// trainingDataSet
+// |>Seq.map (fun x-> x.raw)
+// |>Seq.countBy (fun x ->  )
+// |>Seq.length
+// |>Seq.map(fun x -> 
+//     trainingDataSet
+//     |> Seq.filter (fun y -> y<>x)
+//     |> (fun t -> classify t x)
+// )
 //|>Seq.length
-|> Seq.iteri (fun i x -> printfn "%A: %A" i x)
+//|> Seq.iteri (fun i x -> printfn "%A: %A" i x)
 
 //classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
-doKFold 10 trainingDataSet
+doKFold 1 trainingDataSet
+
+// #load @"D:\Code Snippits\Clipboard.fsx"
+// open Clipboard
+
+// getRandomFolds 1 trainingDataSet
+// |>Array.length
+// let k = 20
+// (47/k)
+// 47-(47/k)
+// //Run the kfold test 100 times, take the average 
+// Seq.init 45 (fun k ->   //do this 18 times
+//     (k+2),
+//     Seq.init 100 (fun _ -> doKFold (k+2) trainingDataSet)
+//     |>Seq.average
+// )
+// |> Seq.map (fun (k,mse) -> sprintf "%d\t%f" k mse)
+// |> String.concat "\n"
+// |> toClipboard
+
+
+//Including the singleton values in the F function forces the average score to lie around 0.2026 an error of  20.26%
+//Excluding the singleton values in the F function forces the average score to lie around 0.0275 an error of   2.75%
+//Collecting information that is irrelevent is worse than not collecting it at all - 
+
 
 //As things stand right now, executing everything you will get a number between 0. and 1.0 (though most numbers lie between 0.0 and 0.1 with an average ~0.02) //This is a good number 2% is a low fail rate
 //This result gives the average % of failures for all validation sets. 
