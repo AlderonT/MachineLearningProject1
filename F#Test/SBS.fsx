@@ -74,7 +74,7 @@ let F (dataSet:DataSet) d Aj ak cls =
 // Finds the likeliness that the sample data point is of the class "cls".
 let C (dataSet:DataSet) (cls:Class) (sample:Data) = 
     //for more than one attribute, additional F parts will need to be added
-    let d = 35-14   //number of attributes - the number of singleton values
+    let d = 1//35-14   //number of attributes - the number of singleton values
     (Q dataSet cls)
     *(F dataSet d (fun x -> x.a0) sample.a0 cls)
     *(F dataSet d (fun x -> x.a1) sample.a1 cls)
@@ -142,26 +142,17 @@ let MSE d (x:(Class*Class) seq) =   //This is the MSE (Mean Square Error) loss f
     let sum =                           //We start out by getting the sums for the second part
         x                               //take our seq of class*class
         |>Seq.sumBy(function              // take each element and match them with... //this is another form of the match function (equivelent to "match (x,y) with")
-            | D1,D1 -> 0.    // correct 0 error
-            | D1,D2 -> 1.    // wrong 1 error
-            | D2,D1 -> 1.    // wrong 1 error (this is just how I did the math out on the side)
-            | D2,D2 -> 0.    // correct 0 error
-            | D3,D3 -> 0.    // correct 0 error
-            | D3,D2 -> 1.    // wrong 1 error
-            | D2,D3 -> 1.    // wrong 1 error (this is just how I did the math out on the side)
-            | D4,D4 -> 0.    // correct 0 error
-            | D3,D4 -> 1.    // wrong 1 error
-            | D1,D3 -> 1.    // wrong 1 error (this is just how I did the math out on the side)
-            | D4,D2 -> 1.    // wrong 1 error
-            | D2,D4 -> 1.    // wrong 1 error (this is just how I did the math out on the side)
-            | D4,D1 -> 1.    // wrong 1 error
-            | D1,D4 -> 1.    // wrong 1 error (this is just how I did the math out on the side)
-            | D4,D3 -> 1.    // wrong 1 error
-            | D3,D1 -> 1.    // wrong 1 error (this is just how I did the math out on the side)
-            )
-    (1.0/(float d))*(sum)           //here we're just doing the MSE calculation 1/d*SUM((Yi-'Yi)^2; i=1; i->d)
-    //in a nutshell this gets the % of classes that were guessed incorrectly therefore... ~(0 < result < 1) //You can get get 0.0 and 1.0 but the chance is incredibly low
+            | D1,D1         //If you have D1*D1, D2*D2, D3*D3, D4*D4, then 0.
+            | D2,D2
+            | D3,D3
+            | D4,D4 -> 0.   //This cleans stuff up way better for when you have more than 2 classes
+            | _ -> 1.       //If LITERALLY ANYTHING ELSE, then return 1
 
+            )               //Then sum the results for each tuple in x
+    (1.0/(float d))*(sum)           //here we're just doing the MSE calculation 1/d*SUM((Yi-'Yi)^2; i=1; i->d)
+    
+    //in a nutshell this gets the % of classes that were guessed incorrectly therefore... ~(0 < result < 1) //You can get get 0.0 and 1.0 but the chance is incredibly low.
+    //**Note** This function *may* be wrong when doing analysis on the data we found that the error was lower than it should be for some values and we aren't sure why yet.
 ////
  
 
@@ -264,53 +255,28 @@ let trainingDataSet =
         }
     )
 
-// Seq.init (trainingDataSet|>Seq.head).raw.Length (fun idx ->    
-//     idx,
-//     trainingDataSet
-//     |>Seq.countBy (fun x -> x.raw.[idx])
-// )
-// |> Seq.filter (fun (x,y)-> (y|>Seq.length >1))
-// |>Seq.map (snd>>Seq.length)
-// |>Seq.toArray
-
-// trainingDataSet
-// |>Seq.map (fun x-> x.raw)
-// |>Seq.countBy (fun x ->  )
-// |>Seq.length
-// |>Seq.map(fun x -> 
-//     trainingDataSet
-//     |> Seq.filter (fun y -> y<>x)
-//     |> (fun t -> classify t x)
-// )
-//|>Seq.length
-//|> Seq.iteri (fun i x -> printfn "%A: %A" i x)
-
 //classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
-doKFold 1 trainingDataSet
+doKFold 10 trainingDataSet //does a single 10-fold cross validation
 
-// #load @"D:\Code Snippits\Clipboard.fsx"
-// open Clipboard
+#load @"..\Tools\Clipboard.fsx"
+open Clipboard
 
-// getRandomFolds 1 trainingDataSet
-// |>Array.length
-// let k = 20
-// (47/k)
-// 47-(47/k)
-// //Run the kfold test 100 times, take the average 
-// Seq.init 45 (fun k ->   //do this 18 times
-//     (k+2),
-//     Seq.init 100 (fun _ -> doKFold (k+2) trainingDataSet)
-//     |>Seq.average
-// )
-// |> Seq.map (fun (k,mse) -> sprintf "%d\t%f" k mse)
-// |> String.concat "\n"
-// |> toClipboard
+//Run the kfold test 100 times, take the average 
+//Yes this takes a while timed @ 00:04:09.47 
+Seq.init 45 (fun k ->   //do this for all possible 'k's
+    (k+2),
+    Seq.init 100 (fun _ -> doKFold (k+2) trainingDataSet)
+    |>Seq.average
+)
+|> Seq.map (fun (k,mse) -> sprintf "%d\t%f" k mse)
+|> String.concat "\n"
+|> toClipboard //Sends to clipboard after you see "val it : unit()" then you can CTRL-V that sh*t anywhere (Probs Excel tho) (Please clean this up before submission)
 
+//Including the singleton values in the F function forces the average score to lie around 0.2026 an error of  20.26% (with k = 10)
+//Excluding the singleton values in the F function forces the average score to lie around 0.0275 an error of   2.75% (with k = 10)
 
-//Including the singleton values in the F function forces the average score to lie around 0.2026 an error of  20.26%
-//Excluding the singleton values in the F function forces the average score to lie around 0.0275 an error of   2.75%
-//Collecting information that is irrelevent is worse than not collecting it at all - 
+//This, we believe is due to the +1 we add to each attribute where we assume that there *may* be a single example that fits any value
+//and that this fact of the F function leads to the algorithm being more uncertain about some values than it should be
 
+//"Collecting information that is irrelevent is worse than not collecting information at all" - This Algorithm
 
-//As things stand right now, executing everything you will get a number between 0. and 1.0 (though most numbers lie between 0.0 and 0.1 with an average ~0.02) //This is a good number 2% is a low fail rate
-//This result gives the average % of failures for all validation sets. 
