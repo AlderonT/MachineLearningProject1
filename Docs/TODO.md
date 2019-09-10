@@ -5,7 +5,7 @@ The following are the data sets we need to analyze. Data sets that have files th
 1. **Breast Cancer Wisconsin**
 2. Glass
 3. Iris
-4. Soybean
+4. **Soybean**
 5. House Votes 84
  
 
@@ -16,7 +16,7 @@ The following are the data sets we need to read from their file. Data sets that 
 1. **Breast Cancer Wisconsin**
 2. Glass
 3. Iris
-4. Soybean
+4. **Soybean**
 5. House Votes 84
  
 
@@ -27,7 +27,7 @@ The following are the data sets we need to process. Data sets that have files th
 1. **Breast Cancer Wisconsin**
 2. Glass
 3. Iris
-4. Soybean
+4. **Soybean**
 5. House Votes 84*
 
 >*on this data set we should treat unknown values as a unique class rather than filter them out due to the large prevelance of '?' values. 
@@ -50,7 +50,7 @@ We will determine which loss function is perferable for each data set and set th
 1. MSE
 2. --
 3. --
-4. --
+4. MSE (TEMP)
 5. --
  
 
@@ -58,17 +58,17 @@ Hypothesis
 ========
 The following are the data sets we need to make a statistical Hypothisis for. Data sets that have hypothosies are marked as bold 
 
-1. Breast Cancer Wisconsin
+1. **Breast Cancer Wisconsin**
 2. Glass
 3. Iris
-4. Soybean
+4. **Soybean**
 5. House Votes 84
 
 The following are the statistical hypothosies for each data set
-1. --
+1. Randomizing the data will lead to significantly higher loss values due to the use of MSE
 2. --
 3. --
-4. --
+4. Randomizing the data will lead to significantly higher loss values due to the use of MSE (for now)
 5. --
  
 
@@ -79,7 +79,7 @@ The following are the data sets we need to cross anylize. Data sets that have fi
 1. **Breast Cancer Wisconsin**
 2. Glass
 3. Iris
-4. Soybean
+4. **Soybean**
 5. House Votes 84
  
 
