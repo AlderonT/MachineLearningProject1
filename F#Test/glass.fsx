@@ -75,6 +75,8 @@ let C (dataSet:DataSet) (cls:Class) (sample:Data) =
     *(F dataSet d (fun x -> x.BAO) sample.BAO cls)
     *(F dataSet d (fun x -> x.FE2O3) sample.FE2O3 cls)
 
+
+
 // Function to classify a data point given.
 let classify (dataSet:DataSet) (sample:Data) =
     [
@@ -195,6 +197,30 @@ let trainingDataSet =
         }
     )
 
+// Function to 
+let attribs(dataSet:DataSet) =
+
+    let d = 9
+
+    Seq.init d (fun k ->
+    
+        k,
+        trainingDataSet
+        |> Seq.map(fun field -> 
+            match k with 
+                | 0 -> field.RI 
+                | 1 -> field.NA2O 
+                | 2 -> field.MGO 
+                | 3 -> field.AL2O3 
+                | 4 -> field.SIO2 
+                | 5 -> field.K2O 
+                | 6 -> field.CAO 
+                | 7 -> field.BAO 
+                | 8 -> field.FE2O3 
+                | _ -> 0.0
+
+        )
+    )    
 
 //classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
 doKFold 10 trainingDataSet
