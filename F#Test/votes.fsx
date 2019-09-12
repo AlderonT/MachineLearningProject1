@@ -148,11 +148,10 @@ let doKFold k (dataSet:Data seq)=           //This is where we do the k-folding 
 /// 
 //Reads data and assigns to trainingDataSet:
 let trainingDataSet =
-    System.IO.File.ReadAllLines(@"C:\Users\farsh\Downloads\MachineLearningProject1-master\Data\5\house-votes-84.data") // this give you back a set of line from the file (replace with your directory)
+    System.IO.File.ReadAllLines(@"D:\Fall2019\Machine Learning\Project 1\Data\5\house-votes-84.data") // this give you back a set of line from the file (replace with your directory)
     |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim())) // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
     //|> Seq.filter (Seq.exists(fun f -> f="?") >> not)   //This filters out all lines that contain a "?"
-    |> Seq.head
-    |> (fun fields ->   //This will map the lines to objects returning a seqence of datapoints (or a DataSet as defined above)
+    |> Seq.map (fun fields ->   //This will map the lines to objects returning a seqence of datapoints (or a DataSet as defined above)
         {
             //id = fields.[0] |> System.Int32.Parse
             handicappedinfants = fields.[1] |> (function | "n" -> 0 | "y" -> 1| _ -> 2)
@@ -180,14 +179,19 @@ let trainingDataSet =
         }
     )
 
-trainingDataSet
-|>Seq.map(fun x -> 
+//Runs 100 times in ~ 00:06:14.1709
+let sw = System.Diagnostics.Stopwatch.StartNew ()
+Seq.init 1 (fun k -> printfn "Working on %d..." (k+1); doKFold 10 trainingDataSet)
+|>Seq.average
+|>printfn "Average Loss: %f"
+sw.Stop()
+printfn "%A" sw.Elapsed
+
+with seed = 0.103224
+
+//Runs in ~ 00:06:14.1709
+//The average score of 100 runs lies around 0.1003; an error of  10.03% (with k = 10)
+
+let dataSet = 
     trainingDataSet
-    |> Seq.filter (fun y -> y<>x)
-    |> (fun t -> classify t x)
-)
-//|>Seq.length
-|> Seq.iteri (fun i x -> printfn "%A: %A" i x)
-
-
-doKFold 10 trainingDataSet
+    
