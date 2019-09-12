@@ -114,6 +114,18 @@ let notMissing file =
 
 let percentMissing file = ((float (missing file)/float((notMissing file)+(missing file)))*100.0)
 
+attribs
+//let printvalues v = 
+//v
+|> Seq.map(fun ((i:int), (a:seq<float>)) -> 
+    printfn "%d:" i
+    a
+    |> Seq.map(fun b ->
+        printfn " %A " b
+    ) 
+) |> ignore
+
+
 [filebc;filei;fileg;filesb;filehv84]
 |> Seq.map (fun x -> percentMissing x)
 |> Seq.map (fun x -> printfn "%f" x)
