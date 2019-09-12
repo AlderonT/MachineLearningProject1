@@ -26,26 +26,62 @@ type Data ={
 } 
 
 //type alias for the training set
-type DataSet = Data seq
+type DataSet = System.Guid *(Data seq)
 ////
 
 ////Functions:
+
+//Implements memoization (a way to trade speed for storage)
+let memoize (key: 'a -> 'key) (f: 'a -> 'b) = 
+    let memo = System.Collections.Generic.Dictionary()  // make a dictionary
+    fun (a:'a) ->                                       // get an arguement a
+        let key = key a                                 // get the key of a
+        match memo.TryGetValue key  with                // look up the key
+        | false,_ ->                                    // if you can't find it compute f(a)
+            let v = f a                                 // and remember it
+            memo.[key]<-v 
+            v 
+        | true,v -> v                                   // otherwise return the remembered value
+        
+
 //#{pred} = the count of elements in the set that pred is true
 //Implements #{pred}
-let filteredCount pred (s:'a seq) = s |> Seq.filter pred |> Seq.length
+let filteredCount pred =    //-- Now With Memoization
+    memoize fst (fun (_,s) ->
+        s |> Seq.filter pred |> Seq.length
+    )
 
-//Implements Q (C=ci) = #{pred}/N // Finds the percentage of elements in the data set that fall into class "cls"
-let Q (dataSet:DataSet) cls = 
-    (float (filteredCount (fun x -> x.cls = cls) dataSet))/(float (dataSet|>Seq.length))
+//Implements Q (C=ci) = #{pred}/N // Finds the percentage of elements in the data set that fall into class "cls"  -- Now with memoization
+let Q =
+    memoize fst (fun dataSet -> //fst takes a 2-tuple and returns the first element
+        memoize id (fun cls ->  
+            let classCount = filteredCount (fun x -> x.cls = cls)
+            (float (classCount dataSet))/(float (dataSet|>snd|>Seq.length))  //snd takes a 2-tuple and returns the second element
+        )
+    )
+   
+    
 
 //Implements F (Aj=ak,C=ci) = #{(xaj=ak)&(x in ci)}+1/N+d
-//Finds the likeliness that a certain attribute "Aj" has the value ak and fall into class "cls" 
-let F (dataSet:DataSet) d Aj ak cls =
-    let Nc = filteredCount (fun x -> x.cls = cls) dataSet //gets the number of elements that fall into class "cls" 
-    
-    let pred (x:Data) = (Aj x = ak) && (x.cls = cls) // determines the predicate of the F function
-
-    (float ((filteredCount pred dataSet)+1)) / (float (Nc + d)) // executes the function F
+//Finds the likeliness that a certain attribute "Aj" has the value ak and fall into class "cls" -- Now With Memoization cuts time by 99.4%
+let F =
+    memoize fst (fun dataSet ->
+        //printfn "F dataSet key: %A" (fst dataSet)
+        memoize id (fun cls ->         
+            //printfn "F cls key: %A" (cls)
+            let Nc = filteredCount (fun x -> x.cls = cls) dataSet //gets the number of elements that fall into class "cls"             
+            let pred Aj ak (x:Data)   = (Aj x = ak) && (x.cls = cls) // determines the predicate of the F function
+            memoize fst (fun (key,Aj)->
+                memoize id (fun ak ->
+                    //printfn "F ajak key: %A" (key)
+                    let topTerm = (float ((filteredCount (pred Aj ak) dataSet)+1))
+                    (fun d ->
+                         topTerm/(float (Nc + d)) // executes the function F
+                    )
+                )
+            )   
+        )
+    )
 
 //Implements C(x) = Q(C=ci)*Product(F(Aj=ak,C=ci)) from j=1 to d
 // Finds the likeliness that the sample data point is of the class "cls".
@@ -53,22 +89,22 @@ let C (dataSet:DataSet) (cls:Class) (sample:Data) =
     //for more than one attribute, additional F parts will need to be added
     let d = 16   //number of attributes
     (Q dataSet cls)
-    *(F dataSet d (fun x -> x.handicappedinfants) sample.handicappedinfants cls)
-    *(F dataSet d (fun x -> x.waterprojectcostsharing) sample.waterprojectcostsharing cls)
-    *(F dataSet d (fun x -> x.adoptionofthebudgetresolution) sample.adoptionofthebudgetresolution cls)
-    *(F dataSet d (fun x -> x.physicianfeefreeze) sample.physicianfeefreeze cls)
-    *(F dataSet d (fun x -> x.elsalvadoraid) sample.elsalvadoraid cls)
-    *(F dataSet d (fun x -> x.religiousgroupsinschools) sample.religiousgroupsinschools cls)
-    *(F dataSet d (fun x -> x.antisatellitetestban) sample.antisatellitetestban cls)
-    *(F dataSet d (fun x -> x.aidtonicaraguancontras) sample.aidtonicaraguancontras cls)
-    *(F dataSet d (fun x -> x.mxmissile) sample.mxmissile cls)
-    *(F dataSet d (fun x -> x.immigration) sample.immigration cls)
-    *(F dataSet d (fun x -> x.synfuelscorporationcutback) sample.synfuelscorporationcutback cls)
-    *(F dataSet d (fun x -> x.educationspending) sample.educationspending cls)
-    *(F dataSet d (fun x -> x.superfundrighttosue) sample.superfundrighttosue cls)
-    *(F dataSet d (fun x -> x.crime) sample.crime cls)
-    *(F dataSet d (fun x -> x.dutyfreeexports) sample.dutyfreeexports cls)
-    *(F dataSet d (fun x -> x.exportadministrationactsouthafrica) sample.exportadministrationactsouthafrica cls)
+    *(F dataSet cls (0,(fun x -> x.handicappedinfants)) sample.handicappedinfants d )
+    *(F dataSet cls (1,(fun x -> x.waterprojectcostsharing)) sample.waterprojectcostsharing d)
+    *(F dataSet cls (2,(fun x -> x.adoptionofthebudgetresolution)) sample.adoptionofthebudgetresolution d)
+    *(F dataSet cls (3,(fun x -> x.physicianfeefreeze)) sample.physicianfeefreeze  d)
+    *(F dataSet cls (4,(fun x -> x.elsalvadoraid)) sample.elsalvadoraid d)
+    *(F dataSet cls (5,(fun x -> x.religiousgroupsinschools)) sample.religiousgroupsinschools d)
+    *(F dataSet cls (6,(fun x -> x.antisatellitetestban)) sample.antisatellitetestban  d)
+    *(F dataSet cls (7,(fun x -> x.aidtonicaraguancontras)) sample.aidtonicaraguancontras  d)
+    *(F dataSet cls (8,(fun x -> x.mxmissile)) sample.mxmissile  d)
+    *(F dataSet cls (9,(fun x -> x.immigration)) sample.immigration  d)
+    *(F dataSet cls (10,(fun x -> x.synfuelscorporationcutback)) sample.synfuelscorporationcutback d)
+    *(F dataSet cls (11,(fun x -> x.educationspending)) sample.educationspending  d)
+    *(F dataSet cls (12,(fun x -> x.superfundrighttosue)) sample.superfundrighttosue d)
+    *(F dataSet cls (13,(fun x -> x.crime)) sample.crime  d)
+    *(F dataSet cls (14,(fun x -> x.dutyfreeexports)) sample.dutyfreeexports d)
+    *(F dataSet cls (15,(fun x -> x.exportadministrationactsouthafrica)) sample.exportadministrationactsouthafrica  d)
 
     //Actually classifies a sample datapoint into a class.
 let classify (dataSet:DataSet) (sample:Data) =
@@ -124,7 +160,7 @@ let getRandomFolds k (dataSet:'a seq) = //k is the number of slices dataset is t
             generate (j+1)                              //increment j and run again
     generate 0                                          //calls the generate function
 
-let applyKFold (trainingSet:Data seq) (validationSet: Data seq) =   //apply the loss function (MSE) to the kth fold
+let applyKFold (trainingSet:DataSet) (validationSet: Data seq) =   //apply the loss function (MSE) to the kth fold
     validationSet                                                   //take our validation set
     |> Seq.map (fun x -> (classify trainingSet x,x.cls))            //grab each element out of it and run it as the "sample" in our classify function and pair the resultant class with the element's ACTUAL class in a tuple
     |> MSE (validationSet |> Seq.length)                            //run the MSE algorithm with d = |validationSet| and the sequence of class tuples
@@ -139,9 +175,10 @@ let doKFold k (dataSet:Data seq)=           //This is where we do the k-folding 
             |> Seq.mapi (fun i f -> (i,f))  //each seqence in the array is mapped to a tuple with the index of the sequence as "(index,sequence)"
             |> Seq.filter(fun (i,_) -> i<>k)//now we will filter out the seqence that has the index of k
             |> Seq.collect snd              //now we grab the seqence from the tuple
+            |> (fun s -> System.Guid.NewGuid(),s)
         applyKFold trainingSet validationSet//Finally lets apply our function above "applyKFold" to our training set and validation set
     )
-    |> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
+    //|> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
     |> Seq.average                          //the result is a seq of floats so we'll just get the average our % failuresto give us a result to our k-fold analysis as the accuracy of our algorithm
 
 ////
@@ -178,20 +215,17 @@ let trainingDataSet =
              )
         }
     )
+    |>Seq.cache //Due to the large number of datapoints we're caching the values so we don't redo the work above every time we look at trainingDataSet (saves ~1s)
 
-//Runs 100 times in ~ 00:06:14.1709
+//Runs 100 times in ~ 00:00:12.7873
 let sw = System.Diagnostics.Stopwatch.StartNew ()
-Seq.init 1 (fun k -> printfn "Working on %d..." (k+1); doKFold 10 trainingDataSet)
+Seq.init 100 (fun k -> printfn "Working on %d..." (k+1); doKFold 10 trainingDataSet)
 |>Seq.average
 |>printfn "Average Loss: %f"
 sw.Stop()
 printfn "%A" sw.Elapsed
 
-with seed = 0.103224
+// doKFold 10 trainingDataSet
 
-//Runs in ~ 00:06:14.1709
-//The average score of 100 runs lies around 0.1003; an error of  10.03% (with k = 10)
-
-let dataSet = 
-    trainingDataSet
-    
+//Runs in ~ 00:00:12.7873
+//The average score of 100 runs lies around 0.1004; an error of  10.04% (with k = 10)

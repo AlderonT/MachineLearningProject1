@@ -74,7 +74,7 @@ let F (dataSet:DataSet) d Aj ak cls =
 // Finds the likeliness that the sample data point is of the class "cls".
 let C (dataSet:DataSet) (cls:Class) (sample:Data) = 
     //for more than one attribute, additional F parts will need to be added
-    let d = 1//35-14   //number of attributes - the number of singleton values
+    let d = 35-14   //number of attributes - the number of singleton values
     (Q dataSet cls)
     *(F dataSet d (fun x -> x.a0) sample.a0 cls)
     *(F dataSet d (fun x -> x.a1) sample.a1 cls)
@@ -195,14 +195,14 @@ let doKFold k (dataSet:Data seq)=           //This is where we do the k-folding 
             |> Seq.collect snd              //now we grab the seqence from the tuple
         applyKFold trainingSet validationSet//Finally lets apply our function above "applyKFold" to our training set and validation set
     )
-    //|> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
+    |> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
     |> Seq.average                          //the result is a seq of floats so we'll just get the average our % failuresto give us a result to our k-fold analysis as the accuracy of our algorithm
 
 ////
 
 //Reads data and assigns to trainingDataSet:
 let trainingDataSet =
-    System.IO.File.ReadAllLines(@"E:\Project 1\Data\4\soybean-small.data") // this give you back a set of line from the file (replace with your directory)
+    System.IO.File.ReadAllLines(@"D:\Fall2019\Machine Learning\Project 1\Data\4\soybean-small.data") // this give you back a set of line from the file (replace with your directory)
     |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim())) // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
     |> Seq.filter (Seq.exists(fun f -> f="?") >> not)   //This filters out all lines that contain a "?"
     |> Seq.map (fun fields ->   //This will map the lines to objects returning a seqence of datapoints (or a DataSet as defined above)
@@ -256,21 +256,24 @@ let trainingDataSet =
     )
 
 //classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
-doKFold 10 trainingDataSet //does a single 10-fold cross validation
+//doKFold 10 trainingDataSet //does a single 10-fold cross validation
 
-#load @"..\Tools\Clipboard.fsx"
-open Clipboard
+// #load @"..\Tools\Clipboard.fsx"
+// open Clipboard
 
 //Run the kfold test 100 times, take the average 
 //Yes this takes a while timed @ 00:04:09.47 
-Seq.init 45 (fun k ->   //do this for all possible 'k's
-    (k+2),
-    Seq.init 100 (fun _ -> doKFold (k+2) trainingDataSet)
-    |>Seq.average
-)
-|> Seq.map (fun (k,mse) -> sprintf "%d\t%f" k mse)
-|> String.concat "\n"
-|> toClipboard //Sends to clipboard after you see "val it : unit()" then you can CTRL-V that sh*t anywhere (Probs Excel tho) (Please clean this up before submission)
+// Seq.init 45 (fun k ->   //do this for all possible 'k's
+//     (k+2),
+//     Seq.init 100 (fun _ -> doKFold (k+2) trainingDataSet)
+//     |>Seq.average
+// )
+// |> Seq.map (fun (k,mse) -> sprintf "%d\t%f" k mse)
+// |> String.concat "\n"
+// |> toClipboard //Sends to clipboard after you see "val it : unit()" then you can CTRL-V that sh*t anywhere (Probs Excel tho) (Please clean this up before submission)
+
+Seq.init 100 (fun _ -> doKFold 10 trainingDataSet)
+|>Seq.average
 
 //Including the singleton values in the F function forces the average score to lie around 0.2026 an error of  20.26% (with k = 10)
 //Excluding the singleton values in the F function forces the average score to lie around 0.0275 an error of   2.75% (with k = 10)
