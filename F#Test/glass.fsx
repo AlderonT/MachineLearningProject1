@@ -359,5 +359,3 @@ printfn "%A" sw.Elapsed
 //Average error: 45.7632% +/- ~2%
 //time: 00:03:48.3773
 
-//As things stand right now, executing everything you will get a number between 0. and 1.0 (though most numbers lie between 0.0 and 0.1 with an average ~0.02) //This is a good number 2% is a low fail rate
-//This result gives the average % of failures for all validation sets.
