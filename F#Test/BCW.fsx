@@ -261,4 +261,4 @@ sw.Stop()
 printfn "%A" sw.Elapsed
  
 //Average error: 2.5473% +/- ~0.05%
-//time: 00:10:45.9402
+//time: 00:10:45.9402 (only 10 repeats)
