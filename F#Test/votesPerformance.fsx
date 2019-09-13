@@ -8,6 +8,11 @@
 //--------------------------------------------------------------------------------------------------------------------------
 
 
+////This was an experiment to see if we could speed up the preformance by using memoization
+////but due to complexity we did not want to put it into the main code base
+////Please do NOT grade this for the votes file
+////this is only here to show an alternative approach   
+
 ////Type Definitions:
 //Classification types
 type Class =
@@ -131,19 +136,12 @@ let classify (dataSet:DataSet) (sample:Data) =
 
 /// //// Loss Function
 
-let MSE d (x:(Class*Class) seq) =   //This is the MSE (Mean Square Error) loss function, it takes the number of elements (|validationSet| from below), and a sequence of (class*class) tuples
-    let sum =                           //We start out by getting the sums for the second part
-        x                               //take our seq of class*class
-        |>Seq.map(function              // take each element and match them with... //this is another form of the match function (equivelent to "match (x,y) with")
-            | Democrat,Democrat -> 0.       // correct 0 error
-            | Republican,Democrat -> 1.    // wrong 1 error
-            | Democrat,Republican -> -1.   // wrong -1 error (this is just how I did the math out on the side)
-            | Republican,Republican -> 0. // correct 0 error
-            )
-        |> Seq.map (fun x -> x*x)       //then we square the values
-        |> Seq.sum                      //and sum them all
-    
-    (1.0/(float d))*(sum)           //here we're just doing the MSE calculation 1/d*SUM((Yi-'Yi)^2; i=1; i->d)
+let zeroOneLoss (x:(Class*Class) seq) =   //This is the MSE (Mean Square Error) loss function, it takes the number of elements (|validationSet| from below), and a sequence of (class*class) tuples
+    x
+    |>Seq.averageBy (function
+        | a,b when a=b -> 0.
+        | _ -> 1.
+    )            //here we're just doing the MSE calculation 1/d*SUM((Yi-'Yi)^2; i=1; i->d)
     //in a nutshell this gets the % of classes that were guessed incorrectly therefore... ~(0 < result < 1) //You can get get 0.0 and 1.0 but the chance is incredibly low
 
 ////
@@ -173,7 +171,7 @@ let getRandomFolds k (dataSet:'a seq) = //k is the number of slices dataset is t
 let applyKFold (trainingSet:DataSet) (validationSet: Data seq) =   //apply the loss function (MSE) to the kth fold
     validationSet                                                   //take our validation set
     |> Seq.map (fun x -> (classify trainingSet x,x.cls))            //grab each element out of it and run it as the "sample" in our classify function and pair the resultant class with the element's ACTUAL class in a tuple
-    |> MSE (validationSet |> Seq.length)                            //run the MSE algorithm with d = |validationSet| and the sequence of class tuples
+    |> zeroOneLoss                                                  //run the MSE algorithm with d = |validationSet| and the sequence of class tuples
     //                                                              //The result is a float: the % of elements that were guessed incorrectly
 
 let doKFold k (dataSet:Data seq)=           //This is where we do the k-folding algorithim this will return the average from all the kfolds
