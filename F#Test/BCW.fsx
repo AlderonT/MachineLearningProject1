@@ -33,7 +33,7 @@ printfn "%A" sw.Elapsed
 
 
 sw.Start ()
-Seq.init 10 (fun k -> printfn "Working on %d..." (k+1); doKFold 10 (newShuffledTrainingDataSet ()))
+Seq.init 1 (fun k -> printfn "Working on %d..." (k+1); doKFold 10 (newShuffledTrainingDataSet ()))
 |>Seq.average
 |>printfn "Average Loss: %f"
 sw.Stop()
