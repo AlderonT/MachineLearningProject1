@@ -86,15 +86,15 @@ let C (dataSet:DataSet) (cls:Class) (sample:Data) =
     *(F dataSet d (fun x -> x.a7) sample.a7 cls)
     *(F dataSet d (fun x -> x.a8) sample.a8 cls)
     *(F dataSet d (fun x -> x.a9) sample.a9 cls)
-    // *(F dataSet d (fun x -> x.a10) sample.a10 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a10) sample.a10 cls)    //Not relavent
     *(F dataSet d (fun x -> x.a11) sample.a11 cls)  
-    // *(F dataSet d (fun x -> x.a12) sample.a12 cls)    //Not relavent
-    // *(F dataSet d (fun x -> x.a13) sample.a13 cls)    //Not relavent
-    // *(F dataSet d (fun x -> x.a14) sample.a14 cls)    //Not relavent
-    // *(F dataSet d (fun x -> x.a15) sample.a15 cls)    //Not relavent
-    // *(F dataSet d (fun x -> x.a16) sample.a16 cls)    //Not relavent
-    // *(F dataSet d (fun x -> x.a17) sample.a17 cls)    //Not relavent
-    // *(F dataSet d (fun x -> x.a18) sample.a18 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a12) sample.a12 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a13) sample.a13 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a14) sample.a14 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a15) sample.a15 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a16) sample.a16 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a17) sample.a17 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a18) sample.a18 cls)    //Not relavent
     *(F dataSet d (fun x -> x.a19) sample.a19 cls)
     *(F dataSet d (fun x -> x.a20) sample.a20 cls)
     *(F dataSet d (fun x -> x.a21) sample.a21 cls)
@@ -104,12 +104,12 @@ let C (dataSet:DataSet) (cls:Class) (sample:Data) =
     *(F dataSet d (fun x -> x.a25) sample.a25 cls)
     *(F dataSet d (fun x -> x.a26) sample.a26 cls)
     *(F dataSet d (fun x -> x.a27) sample.a27 cls)
-    // *(F dataSet d (fun x -> x.a28) sample.a28 cls)    //Not relavent
-    // *(F dataSet d (fun x -> x.a29) sample.a29 cls)    //Not relavent
-    // *(F dataSet d (fun x -> x.a30) sample.a30 cls)    //Not relavent
-    // *(F dataSet d (fun x -> x.a31) sample.a31 cls)    //Not relavent
-    // *(F dataSet d (fun x -> x.a32) sample.a32 cls)    //Not relavent
-    // *(F dataSet d (fun x -> x.a33) sample.a33 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a28) sample.a28 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a29) sample.a29 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a30) sample.a30 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a31) sample.a31 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a32) sample.a32 cls)    //Not relavent
+    *(F dataSet d (fun x -> x.a33) sample.a33 cls)    //Not relavent
     *(F dataSet d (fun x -> x.a34) sample.a34 cls)
     
     //let d = number of attributes
@@ -195,7 +195,7 @@ let doKFold k (dataSet:Data seq)=           //This is where we do the k-folding 
             |> Seq.collect snd              //now we grab the seqence from the tuple
         applyKFold trainingSet validationSet//Finally lets apply our function above "applyKFold" to our training set and validation set
     )
-    |> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
+    //|> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
     |> Seq.average                          //the result is a seq of floats so we'll just get the average our % failuresto give us a result to our k-fold analysis as the accuracy of our algorithm
 
 ////
@@ -255,31 +255,125 @@ let trainingDataSet =
         }
     )
 
-//classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
-//doKFold 10 trainingDataSet //does a single 10-fold cross validation
 
-// #load @"..\Tools\Clipboard.fsx"
-// open Clipboard
+let newShuffledTrainingDataSet () = 
+    let shuffleAttributes () =                                                                  //This will generate a verson of the data that shuffles 10% of the attributes
+        let workingData =                                                                       //We're getting the data we will work with
+            System.IO.File.ReadAllLines(@"E:\Project 1\Data\4\soybean-small.data")                      //get the data from file (yes this needs to match a directory that can read it)
+            |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim()))   //split the lines on the commas
+            |> Seq.map (fun sa ->                                                               //now we are taking each value and...
+                let cls = sa.[sa.Length-1]                                                      //the last value gets to be a CLS
+                let attribs = sa |> Seq.take (sa.Length-1) |> Seq.toArray         //We take everything else, drop the first and last values and make the result into an array
+                cls,attribs                                                                 //we are making a tuple of a tuple here 
+            )
+            |>Seq.toArray                                                                       //making the sequence into an array so we don't recalculate every time we call workingData
 
-//Run the kfold test 100 times, take the average 
-//Yes this takes a while timed @ 00:04:09.47 
-// Seq.init 45 (fun k ->   //do this for all possible 'k's
-//     (k+2),
-//     Seq.init 100 (fun _ -> doKFold (k+2) trainingDataSet)
-//     |>Seq.average
-// )
-// |> Seq.map (fun (k,mse) -> sprintf "%d\t%f" k mse)
-// |> String.concat "\n"
-// |> toClipboard //Sends to clipboard after you see "val it : unit()" then you can CTRL-V that sh*t anywhere (Probs Excel tho) (Please clean this up before submission)
+        let shuffle (data:string [] []) attr=                                       //this will shuffle the attribute "attr" in the string array data
+            let mutable i = 0                                                       //we are doing this imperitvely as a show of force (this is how you make a mutable value)
+            let attributes = ResizeArray (data |> Seq.map (fun xs -> xs.[attr]))    //we are making an array of the values from data's 'attr'th attribute array
+            let rnd = System.Random()                                               //make our randomNumberGenerator
+            while attributes.Count>0 do                                             //while we have attributes...
+                let j = rnd.Next(0,attributes.Count)                                //get a random index in attributes
+                let v = attributes.[j]                                              //assign v the value of the j'th attribute out of attributes
+                attributes.RemoveAt(j)                                              //remove the j'th element from attributes
+                data.[i].[attr] <- v                                                //replace the value of the i'th data point's 'attr'th attribute (this effects the actual value of data outside the function)
+                i <- i+1                                                            //increment i
 
-Seq.init 100 (fun _ -> doKFold 10 trainingDataSet)
+        
+        let data = workingData |>Array.map snd                                                  //defining data as the attribute array from working Data
+        let modifyCount = (workingData.[0]|> snd |> Array.length |> float)*0.1 |> ceil |> int   //this is the count of modifiable attributes (literally the length of attributes*0.1 rounded up)
+        let attribsCount = (workingData.[0]|> snd |> Array.length)                              //this is the number of actual attributes
+        let rnd = System.Random()                                                               //make a randomNumberGenerator
+        let idxs = ResizeArray([0..(attribsCount-1)])                                           //we are making a mutable list of indicies 
+        List.init modifyCount (fun _ ->                                                         //make a new list with magnitude of modify count (the number of elements we are shuffling)
+            let j = rnd.Next(0,idxs.Count)                                                      //get a random index from idxs
+            let i = idxs.[j]                                                                    //let i be the random index
+            idxs.RemoveAt(j)                                                                    //we shall remove said index from idxs (so we don't choose it again)
+            i                                                                                   //and add it to our list
+        )                                                                                       ////This randomly chooses the attribute numbers we're going to shuffle
+        |>Seq.iter (shuffle data)                                                               //we now iter through this list of indecies and shuffle the data at the index (This shuffling modifies the actual values of data)
+        Seq.zip workingData data                                                                //then we make a tuple of the working data and the shuffled data
+        |>Seq.map (fun ((cls,oldData),newData) ->                                          //Then we take the form ((string,string),string[],string[])
+            seq {yield! newData; yield cls} |> String.concat "," )                     //and convert it into one long sequence of strings which we immediately concat with ','
+    
+    shuffleAttributes ()                                                                        //we start with the shuffled values this time
+    |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim())) // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
+    |> Seq.filter (Seq.exists(fun f -> f="?") >> not)   //This filters out all lines that contain a "?"
+    |> Seq.map (fun fields ->   //This will map the lines to objects returning a seqence of datapoints (or a DataSet as defined above)
+        {
+            //id = fields.[0] |> System.Int32.Parse
+            a0 = fields.[0] |> System.Int32.Parse
+            a1 = fields.[1] |> System.Int32.Parse 
+            a2 = fields.[2] |> System.Int32.Parse  
+            a3 = fields.[3] |> System.Int32.Parse  
+            a4 = fields.[4] |> System.Int32.Parse  
+            a5 = fields.[5] |> System.Int32.Parse  
+            a6 = fields.[6] |> System.Int32.Parse  
+            a7 = fields.[7] |> System.Int32.Parse  
+            a8 = fields.[8] |> System.Int32.Parse  
+            a9 = fields.[9] |> System.Int32.Parse  
+            a10 = fields.[10] |> System.Int32.Parse  
+            a11 = fields.[11] |> System.Int32.Parse 
+            a12 = fields.[12] |> System.Int32.Parse  
+            a13 = fields.[13] |> System.Int32.Parse  
+            a14 = fields.[14] |> System.Int32.Parse  
+            a15 = fields.[15] |> System.Int32.Parse  
+            a16 = fields.[16] |> System.Int32.Parse  
+            a17 = fields.[17] |> System.Int32.Parse  
+            a18 = fields.[18] |> System.Int32.Parse  
+            a19 = fields.[19] |> System.Int32.Parse  
+            a20 = fields.[20] |> System.Int32.Parse  
+            a21 = fields.[21] |> System.Int32.Parse 
+            a22 = fields.[22] |> System.Int32.Parse  
+            a23 = fields.[23] |> System.Int32.Parse  
+            a24 = fields.[24] |> System.Int32.Parse  
+            a25 = fields.[25] |> System.Int32.Parse  
+            a26 = fields.[26] |> System.Int32.Parse  
+            a27 = fields.[27] |> System.Int32.Parse  
+            a28 = fields.[28] |> System.Int32.Parse  
+            a29 = fields.[29] |> System.Int32.Parse  
+            a30 = fields.[30] |> System.Int32.Parse  
+            a31 = fields.[31] |> System.Int32.Parse 
+            a32 = fields.[32] |> System.Int32.Parse  
+            a33 = fields.[33] |> System.Int32.Parse  
+            a34 = fields.[34] |> System.Int32.Parse   
+            cls = fields.[35] |> (fun x -> 
+                 match x with
+                 | "D1" -> D1 // if D1 then D1
+                 | "D2" -> D2 // ...
+                 | "D3" -> D3 // ...
+                 | "D4" -> D4 // ...
+                 | _ -> D1    // if it's anything else then make it a D1 (I need a default case)
+             )
+            raw=fields
+        }
+    )
+
+let sw = System.Diagnostics.Stopwatch.StartNew ()
+Seq.init 100 (fun k -> printfn "Working on %d..." (k+1); doKFold 10  trainingDataSet)
 |>Seq.average
+|>printfn "Average Loss: %f"
+sw.Stop()
+printfn "%A" sw.Elapsed
 
-//Including the singleton values in the F function forces the average score to lie around 0.2026 an error of  20.26% (with k = 10)
-//Excluding the singleton values in the F function forces the average score to lie around 0.0275 an error of   2.75% (with k = 10)
+//Without Singleton attributes
+//Average error: 2.4000% +/- ~0.3%
+//time: 00:00:04.9346 
+//With Singleton attributes
+//Average error: 15.5800% +/- ~0.3%
+//time: 00:00:08.0298
 
-//This, we believe is due to the +1 we add to each attribute where we assume that there *may* be a single example that fits any value
-//and that this fact of the F function leads to the algorithm being more uncertain about some values than it should be
 
-//"Collecting information that is irrelevent is worse than not collecting information at all" - This Algorithm
-
+sw.Start ()
+Seq.init 100 (fun k -> printfn "Working on %d..." (k+1); doKFold 10 (newShuffledTrainingDataSet ()))
+|>Seq.average
+|>printfn "Average Loss: %f"
+sw.Stop()
+printfn "%A" sw.Elapsed
+ 
+//Without Singleton attributes
+//Average error: 5.3900% +/- ~0.4%
+//time: 00:00:14.9671
+//With Singleton attributes
+//Average error: 19.4700% +/- ~0.3%
+//time: 00:00:16.2004
