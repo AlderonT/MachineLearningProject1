@@ -1,3 +1,11 @@
+//--------------------------------------------------------------------------------------------------------------------------
+// CSCI447 - Fall 2019
+// Assignment #1
+// Tysen Radovich
+// 
+// Program to perform the Naive-Bayes algorithm on the UCI Machine Learning Repository Iris dataset (iris.data)
+//--------------------------------------------------------------------------------------------------------------------------
+
 ////Type Definitions:
 //Classification types
 type Class =
@@ -227,16 +235,16 @@ let newShuffledTrainingDataSet () =
             petalW = float fields.[3] // 1 - 10
             cls = fields.[4] |> (fun x -> 
                 match x with
-                | "Iris-setosa" -> Setosa //if the string is a type of iris
-                | "Iris-versicolour" -> Versicolour // if it's a 4 it's malignant
-                | "Iris-virginica"-> Virginica  // if it's anything else it's being malignant to me (I need a default case)
-                | _ -> Setosa    
+                | "Iris-setosa" -> Setosa 
+                | "Iris-versicolour" -> Versicolour 
+                | "Iris-virginica"-> Virginica  
+                | _ -> Setosa    // (default case)
             )
 
         }
     )
 
-//classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
+
 let sw = System.Diagnostics.Stopwatch.StartNew ()
 Seq.init 100 (fun k -> printfn "Working on %d..." (k+1); doKFold 10  trainingDataSet)
 |>Seq.average

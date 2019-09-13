@@ -1,3 +1,12 @@
+//--------------------------------------------------------------------------------------------------------------------------
+// CSCI447 - Fall 2019
+// Assignment #1
+// Allen Simpson
+// 
+// Program to perform the Naive-Bayes algorithm on the UCI Machine Learning Repository Breast Cancer Wisconsin dataset (breast-cancer-wisconsin.data)
+//--------------------------------------------------------------------------------------------------------------------------
+
+
 ////Type Definitions:
 //Classification types
 type Class =
@@ -239,9 +248,6 @@ let newShuffledTrainingDataSet () =
         }
     )
 
-
-//classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
-//classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
 let sw = System.Diagnostics.Stopwatch.StartNew ()
 Seq.init 10 (fun k -> printfn "Working on %d..." (k+1); doKFold 10  trainingDataSet)
 |>Seq.average

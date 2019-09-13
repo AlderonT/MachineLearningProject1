@@ -328,7 +328,7 @@ let newShuffledTrainingDataSet n =                                              
     )
 
 
-//classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
+
 let sw = System.Diagnostics.Stopwatch.StartNew ()
 // Seq.init 10 id 
 // |>Seq.iter (fun n ->

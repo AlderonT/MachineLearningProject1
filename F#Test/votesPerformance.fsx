@@ -1,3 +1,13 @@
+//--------------------------------------------------------------------------------------------------------------------------
+// CSCI447 - Fall 2019
+// Assignment #1
+// Allen Simpson; Farshina Nazrul
+// 
+// A Performance variant of the votes.fsx file that implements memoization to speed up the algorithm.
+// Program to perform the Naive-Bayes algorithm on the UCI Machine Learning Repository House Votes '84 dataset (house-votes-84.data)
+//--------------------------------------------------------------------------------------------------------------------------
+
+
 ////Type Definitions:
 //Classification types
 type Class =

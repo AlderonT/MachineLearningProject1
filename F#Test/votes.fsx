@@ -1,3 +1,11 @@
+//--------------------------------------------------------------------------------------------------------------------------
+// CSCI447 - Fall 2019
+// Assignment #1
+// Farshina Nazrul
+// 
+// Program to perform the Naive-Bayes algorithm on the UCI Machine Learning Repository House Votes '84 dataset (house-votes-84.data)
+//--------------------------------------------------------------------------------------------------------------------------
+
 ////Type Definitions:
 //Classification types
 type Class =
@@ -141,7 +149,7 @@ let doKFold k (dataSet:Data seq)=           //This is where we do the k-folding 
             |> Seq.collect snd              //now we grab the seqence from the tuple
         applyKFold trainingSet validationSet//Finally lets apply our function above "applyKFold" to our training set and validation set
     )
-    |> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
+    // |> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
     |> Seq.average                          //the result is a seq of floats so we'll just get the average our % failuresto give us a result to our k-fold analysis as the accuracy of our algorithm
 
 ////

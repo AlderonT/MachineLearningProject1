@@ -1,3 +1,11 @@
+//--------------------------------------------------------------------------------------------------------------------------
+// CSCI447 - Fall 2019
+// Assignment #1
+// Allen Simpson; Chris Major; Tysen Radovich; Farshina Nazrul
+// 
+// Program to perform the Naive-Bayes algorithm on the UCI Machine Learning Repository Soybean (small) dataset (soybean-small.data)
+//--------------------------------------------------------------------------------------------------------------------------
+
 ////Type Definitions:
 //Classification types
 type Class =
