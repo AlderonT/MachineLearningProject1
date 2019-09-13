@@ -148,14 +148,14 @@ let doKFold k (dataSet:Data seq)=           //This is where we do the k-folding 
             |> Seq.collect snd              //now we grab the seqence from the tuple
         applyKFold trainingSet validationSet//Finally lets apply our function above "applyKFold" to our training set and validation set
     )
-    |> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
+    //|> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
     |> Seq.average                          //the result is a seq of floats so we'll just get the average our % failuresto give us a result to our k-fold analysis as the accuracy of our algorithm
 
 ////
 
 //Reads data and assigns to trainingDataSet:
 let trainingDataSet =
-    System.IO.File.ReadAllLines(@"C:\work\MachineLearningProject1\Data\3\iris.data") // this give you back a set of line from the file (replace with your directory)
+    System.IO.File.ReadAllLines(@"E:\Project 1\Data\3\iris.data") // this give you back a set of line from the file (replace with your directory)
     |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim())) // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
     |> Seq.filter (Seq.exists(fun f -> f="?") >> not)   //This filters out all lines that contain a "?"
     |> Seq.map (fun fields ->   //This will map the lines to objects returning a seqence of datapoints (or a DataSet as defined above)
@@ -176,7 +176,14 @@ let trainingDataSet =
     )
 
 //classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
-doKFold 10 trainingDataSet
+let sw = System.Diagnostics.Stopwatch.StartNew ()
+Seq.init 100 (fun k -> printfn "Working on %d..." (k+1); doKFold 10 trainingDataSet)
+|>Seq.average
+|>printfn "Average Loss: %f"
+sw.Stop()
+printfn "%A" sw.Elapsed
 
+//0.083933 loss -> 8.3993% error
+// run 00:00:10.1502
 //As things stand right now, executing everything you will get a number between 0. and 1.0 (though most numbers lie between 0.0 and 0.1 with an average ~0.02) //This is a good number 2% is a low fail rate
 //This result gives the average % of failures for all validation sets. 
