@@ -23,15 +23,15 @@ type Class =
 type Data = {
     ID      : int       // 1 to 214
 
-    RI      : float     // 1.5112 to 1.5339
-    NA2O    : float     // 10.73 to 17.38
-    MGO     : float     // 0 to 4.49
-    AL2O3   : float     // 0.29 to 3.5
-    SIO2    : float     // 69.81 to 75.41
-    K2O     : float     // 0 to 6.21
-    CAO     : float     // 5.43 to 16.19
-    BAO     : float     // 0 to 3.15
-    FE2O3   : float     // 0 to 0.51
+    RI      : int     // 1.5112 to 1.5339
+    NA2O    : int     // 10.73 to 17.38
+    MGO     : int     // 0 to 4.49
+    AL2O3   : int     // 0.29 to 3.5
+    SIO2    : int     // 69.81 to 75.41
+    K2O     : int     // 0 to 6.21
+    CAO     : int     // 5.43 to 16.19
+    BAO     : int     // 0 to 3.15
+    FE2O3   : int     // 0 to 0.51
 
     CLS     : Class     // Class Value
 } 
@@ -160,70 +160,83 @@ let doKFold k (dataSet:Data seq)=           //This is where we do the k-folding 
             |> Seq.collect snd              //now we grab the seqence from the tuple
         applyKFold trainingSet validationSet//Finally lets apply our function above "applyKFold" to our training set and validation set
     )
-    |> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
+    //|> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
     |> Seq.average                          //the result is a seq of floats so we'll just get the average our % failuresto give us a result to our k-fold analysis as the accuracy of our algorithm
 
 ////
 
-//Reads data and assigns to trainingDataSet:
-let trainingDataSet =
-    System.IO.File.ReadAllLines(@"C:\Users\chris\MEGASync\MSU\CSCI447\assignment_1\MachineLearningProject1\Data\2\glass.data") // this give you back a set of line from the file (replace with your directory)
-    |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim())) // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
-    |> Seq.filter (Seq.exists(fun f -> f="?") >> not)   //This filters out all lines that contain a "?"
-    |> Seq.map (fun fields ->   //This will map the lines to objects returning a seqence of datapoints (or a DataSet as defined above)
-        {
-            ID = fields.[0] |> System.Int32.Parse
-            RI = float fields.[1]                                   // Typecast floats
-            NA2O = float fields.[2]
-            MGO = float fields.[3] 
-            AL2O3 = float fields.[4] 
-            SIO2 = float fields.[5] 
-            K2O = float fields.[6]
-            CAO = float fields.[7]
-            BAO = float fields.[8]
-            FE2O3 = float fields.[9]
+let newTrainingDataSet n =                                                                          //This is a variation on the trainingDataSet that we made to accomidate for continuous values for the attributes 
+    let data =
+        System.IO.File.ReadAllLines(@"E:\Project 1\Data\2\glass.data")                              // this give you back a set of line from the file (replace with your directory)
+        |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim()))           // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
+        |> Seq.filter (Seq.exists(fun f -> f="?") >> not)                                           //This filters out all lines that contain a "?"
+        |> Seq.map (fun sa ->                                                                       //here we are taking each array of strings (the attributes)
+            let i = sa.[0] |> System.Int32.Parse                                                    //parse the first element (the id) as an int
+            let cls = sa.[sa.Length-1] |> System.Int32.Parse                                        //parse the last element (the class) as an int
+            let attrs = sa|> Seq.skip 1 |>Seq.take 9 |> Seq.map System.Double.Parse |> Seq.toArray  //take the array, skip the first and take all but the last, parse each value as a double and make the result into an array
+            i,cls,attrs                                                                             //Then make a 3-tuple of the id,class,and attribute array
+        )
+    let splitIntoDivisions n xs =       //This creates a classifier function that takes an attribute seq and splits it into n divisions | result is a float -> int lambda
+        let min = xs |> Seq.min         //get the minimum attribute value
+        let max = xs |> Seq.max         //get the maximum attribute value
+        let width = (max-min)/(float n) //get the width of each class
+        fun v -> int ((v-min)/width)    //return a function that takes a float v and returns the division it lies in
 
-            CLS = fields.[10] |> (fun x -> 
-                 match x with
-                 | "1" -> BuildingWindowsFloatProcessed
-                 | "2" -> BuildingWindowsNonFloatProcessed
-                 | "3" -> VehicleWindowsFloatProcessed
-                 | "4" -> VehicleWindowsNonFloatProcessed
-                 | "5" -> Containers
-                 | "6" -> Tableware
-                 | "7" -> Headlamps
+    let p = 
+        data                            //take the data (idx,cls,attribs[])
+        |> Seq.map (fun (_,_,xs)->xs)   //get the attribs
+        |> Seq.head                     //get the first set of attribs
+        |> Seq.length                   //and find out how many there are (they should all be the same so p is a constant)
+
+    let funcs =                                 //here we are making an array of functions for each attribute that will divide said attribute into n divisions
+        Array.init p (fun i ->                  //so first make an array of size p (the number of attributes)
+            data                                //take our data...
+            |> Seq.map (fun (_,_,xs)-> xs.[i])  //and extract out the ith attribute from all our datapoints into a single sequence
+            |> splitIntoDivisions n             //then have splitIntoDivisions generage a function for the ith attribute set of values 
+        )
+
+    data                                                        //Now take our data (idx,cls,attribs[])
+    |> Seq.map (fun (i,cls,xs) ->                               //create our Data class by doing the following:
+        {
+            ID = i                                              //ID is i 
+
+            RI = xs.[0] |> funcs.[0]                            //for each attribute in the attribute array,
+            NA2O = xs.[1] |> funcs.[1]                          //get the attribute's index, access that attribute value
+            MGO = xs.[2] |> funcs.[2]                           //and pass it to the attribute conversion function (funcs)
+            AL2O3 = xs.[3] |> funcs.[3]                         //this takes each individual attribute float and "classifies" it
+            SIO2 = xs.[4] |> funcs.[4]
+            K2O = xs.[5] |> funcs.[5]
+            CAO = xs.[6] |> funcs.[6]
+            BAO = xs.[7] |> funcs.[7]
+            FE2O3 = xs.[8] |> funcs.[8]
+
+            CLS = cls |> (fun x ->                              //Here we're matching cls with what class it represents
+                 match x with                                   //this could be done on line 207 (when defining cls) but
+                 | 1 -> BuildingWindowsFloatProcessed           //this format matches the same format we use in the other 
+                 | 2 -> BuildingWindowsNonFloatProcessed        //files
+                 | 3 -> VehicleWindowsFloatProcessed
+                 | 4 -> VehicleWindowsNonFloatProcessed
+                 | 5 -> Containers
+                 | 6 -> Tableware
+                 | 7 -> Headlamps
                  | _   -> VehicleWindowsFloatProcessed          // Since there are none of these in the current dataset, this can serve as a default
              )
         }
     )
 
-// Function to 
-let attribs(dataSet:DataSet) =
-
-    let d = 9
-
-    Seq.init d (fun k ->
-    
-        k,
-        trainingDataSet
-        |> Seq.map(fun field -> 
-            match k with 
-                | 0 -> field.RI 
-                | 1 -> field.NA2O 
-                | 2 -> field.MGO 
-                | 3 -> field.AL2O3 
-                | 4 -> field.SIO2 
-                | 5 -> field.K2O 
-                | 6 -> field.CAO 
-                | 7 -> field.BAO 
-                | 8 -> field.FE2O3 
-                | _ -> 0.0
-
-        )
-    )    
-
 //classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
-doKFold 10 trainingDataSet
+let sw = System.Diagnostics.Stopwatch.StartNew ()
+// Seq.init 10 id 
+// |>Seq.iter (fun n ->
+let n=8 //We found that using 8 divisions leads to the lowest error without sacrificing too much time                                 
+let trainingSet = newTrainingDataSet (n)
+Seq.init 100 (fun k -> printfn "Working on %d..." (k+1); doKFold 10  trainingSet)
+|>Seq.average
+|>printfn "Division: %d Average Loss: %f" (n+1)
+
+sw.Stop()
+printfn "%A" sw.Elapsed
+
 
 //As things stand right now, executing everything you will get a number between 0. and 1.0 (though most numbers lie between 0.0 and 0.1 with an average ~0.02) //This is a good number 2% is a low fail rate
 //This result gives the average % of failures for all validation sets.
