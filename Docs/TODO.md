@@ -3,10 +3,10 @@ Data Analysis
 The following are the data sets we need to analyze. Data sets that have files that anylize are marked as bold 
 
 1. **Breast Cancer Wisconsin**
-2. Glass
-3. Iris
+2. **Glass**
+3. **Iris**
 4. **Soybean**
-5. House Votes 84
+5. **House Votes 84**
  
 
 Reading from file
@@ -14,10 +14,10 @@ Reading from file
 The following are the data sets we need to read from their file. Data sets that have files that read are marked as bold 
 
 1. **Breast Cancer Wisconsin**
-2. Glass
-3. Iris
+2. **Glass**
+3. **Iris**
 4. **Soybean**
-5. House Votes 84
+5. **House Votes 84**
  
 
 Processing Data
@@ -25,10 +25,10 @@ Processing Data
 The following are the data sets we need to process. Data sets that have files that process are marked as bold 
 
 1. **Breast Cancer Wisconsin**
-2. Glass
-3. Iris
+2. **Glass**
+3. **Iris**
 4. **Soybean**
-5. House Votes 84*
+5. **House Votes 84**
 
 >*on this data set we should treat unknown values as a unique class rather than filter them out due to the large prevelance of '?' values. 
 > It is reccomended that we treat these values as "abstain" votes. This is due to the unique nature of the data set.
@@ -39,19 +39,19 @@ Loss Functions
 The following are the data sets we need to make a loss function for. Data sets that have files that have loss functions are marked as bold 
 
 1. **Breast Cancer Wisconsin**
-2. Glass
-3. Iris
-4. Soybean
-5. House Votes 84
+2. **Glass**
+3. **Iris**
+4. **Soybean**
+5. **House Votes 84**
 
 These are the types of loss functions we are using.
 MSE is sensitive to outliers, while MAE is insensitive to outliers. 
 We will determine which loss function is perferable for each data set and set that as the default for each file.
 1. MSE
-2. --
-3. --
-4. MSE (TEMP)
-5. --
+2. MSE
+3. MSE
+4. MSE
+5. MSE
  
 
 Hypothesis
@@ -59,39 +59,46 @@ Hypothesis
 The following are the data sets we need to make a statistical Hypothisis for. Data sets that have hypothosies are marked as bold 
 
 1. **Breast Cancer Wisconsin**
-2. Glass
-3. Iris
+2. **Glass**
+3. **Iris**
 4. **Soybean**
-5. House Votes 84
+5. **House Votes 84**
 
 The following are the statistical hypothosies for each data set
 1. Randomizing the data will lead to significantly higher loss values due to the use of MSE
-2. --
-3. --
-4. Randomizing the data will lead to significantly higher loss values due to the use of MSE (for now)
-5. --
+2. Randomizing the data will lead to significantly higher loss values due to the use of MSE
+3. Randomizing the data will lead to significantly higher loss values due to the use of MSE
+4. Randomizing the data will lead to significantly higher loss values due to the use of MSE
+5. Randomizing the data will lead to significantly higher loss values due to the use of MSE
+
+The Following are the Results:
  
+1. We cannot disprove the null hypothesis
+2. We can disprove the null hypothesis
+3. We can disprove the null hypothesis
+4. We can disprove the null hypothesis
+5. We cannot disprove the null hypothesis
 
 10 fold cross validation
 ========
 The following are the data sets we need to cross anylize. Data sets that have files that have k-fold cross validation are marked as bold 
 
 1. **Breast Cancer Wisconsin**
-2. Glass
-3. Iris
+2. **Glass**
+3. **Iris**
 4. **Soybean**
-5. House Votes 84
+5. **House Votes 84**
  
 
 Paper
 ========
 The following are the data sets we need to add to the paper. Data sets that have been added are marked as bold 
 
-1. Breast Cancer Wisconsin
-2. Glass
-3. Iris
-4. Soybean
-5. House Votes 84
+1. **Breast Cancer Wisconsin**
+2. **Glass**
+3. **Iris**
+4. **Soybean**
+5. **House Votes 84**
  
 
 Video
