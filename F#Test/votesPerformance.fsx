@@ -217,15 +217,96 @@ let trainingDataSet =
     )
     |>Seq.cache //Due to the large number of datapoints we're caching the values so we don't redo the work above every time we look at trainingDataSet (saves ~1s)
 
-//Runs 100 times in ~ 00:00:12.7873
+let newShuffledTrainingDataSet () = 
+    let shuffleAttributes () =                                                                  //This will generate a verson of the data that shuffles 10% of the attributes
+        let workingData =                                                                       //We're getting the data we will work with
+            System.IO.File.ReadAllLines(@"E:\Project 1\Data\5\house-votes-84.data")                      //get the data from file (yes this needs to match a directory that can read it)
+            |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim()))   //split the lines on the commas
+            |> Seq.map (fun sa ->                                                               //now we are taking each value and...
+                let cls = sa.[0]                                                      //the last value gets to be a CLS
+                let attribs = sa |> Seq.skip 1 |> Seq.toArray         //We take everything else, drop the first and last values and make the result into an array
+                cls,attribs                                                                 //we are making a tuple of a tuple here 
+            )
+            |>Seq.toArray                                                                       //making the sequence into an array so we don't recalculate every time we call workingData
+
+        let shuffle (data:string [] []) attr=                                       //this will shuffle the attribute "attr" in the string array data
+            let mutable i = 0                                                       //we are doing this imperitvely as a show of force (this is how you make a mutable value)
+            let attributes = ResizeArray (data |> Seq.map (fun xs -> xs.[attr]))    //we are making an array of the values from data's 'attr'th attribute array
+            let rnd = System.Random()                                               //make our randomNumberGenerator
+            while attributes.Count>0 do                                             //while we have attributes...
+                let j = rnd.Next(0,attributes.Count)                                //get a random index in attributes
+                let v = attributes.[j]                                              //assign v the value of the j'th attribute out of attributes
+                attributes.RemoveAt(j)                                              //remove the j'th element from attributes
+                data.[i].[attr] <- v                                                //replace the value of the i'th data point's 'attr'th attribute (this effects the actual value of data outside the function)
+                i <- i+1                                                            //increment i
+
+        
+        let data = workingData |>Array.map snd                                                  //defining data as the attribute array from working Data
+        let modifyCount = (workingData.[0]|> snd |> Array.length |> float)*0.1 |> ceil |> int   //this is the count of modifiable attributes (literally the length of attributes*0.1 rounded up)
+        let attribsCount = (workingData.[0]|> snd |> Array.length)                              //this is the number of actual attributes
+        let rnd = System.Random()                                                               //make a randomNumberGenerator
+        let idxs = ResizeArray([0..(attribsCount-1)])                                           //we are making a mutable list of indicies 
+        List.init modifyCount (fun _ ->                                                         //make a new list with magnitude of modify count (the number of elements we are shuffling)
+            let j = rnd.Next(0,idxs.Count)                                                      //get a random index from idxs
+            let i = idxs.[j]                                                                    //let i be the random index
+            idxs.RemoveAt(j)                                                                    //we shall remove said index from idxs (so we don't choose it again)
+            i                                                                                   //and add it to our list
+        )                                                                                       ////This randomly chooses the attribute numbers we're going to shuffle
+        |>Seq.iter (shuffle data)                                                               //we now iter through this list of indecies and shuffle the data at the index (This shuffling modifies the actual values of data)
+        Seq.zip workingData data                                                                //then we make a tuple of the working data and the shuffled data
+        |>Seq.map (fun ((cls,oldData),newData) ->                                          //Then we take the form ((string,string),string[],string[])
+            seq {yield cls; yield! newData} |> String.concat "," )                     //and convert it into one long sequence of strings which we immediately concat with ','
+    
+    shuffleAttributes ()                                                                        //we start with the shuffled values this time
+    |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim())) // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
+    //|> Seq.filter (Seq.exists(fun f -> f="?") >> not)   //This filters out all lines that contain a "?"
+    |> Seq.map (fun fields ->   //This will map the lines to objects returning a seqence of datapoints (or a DataSet as defined above)
+        {
+            //id = fields.[0] |> System.Int32.Parse
+            handicappedinfants = fields.[1] |> (function | "n" -> 0 | "y" -> 1| _ -> 2)
+            waterprojectcostsharing = fields.[2] |> (function | "n" -> 0 | "y" -> 1| _ -> 2)
+            adoptionofthebudgetresolution = fields.[3] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            physicianfeefreeze = fields.[4] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            elsalvadoraid = fields.[5] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            religiousgroupsinschools = fields.[6] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            antisatellitetestban = fields.[7] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            aidtonicaraguancontras = fields.[8] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            mxmissile = fields.[9] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            immigration = fields.[10] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            synfuelscorporationcutback = fields.[11] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            educationspending = fields.[12] |> (function | "n" -> 0 | "y" -> 1| _ -> 2)
+            superfundrighttosue = fields.[13] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            crime = fields.[14] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            dutyfreeexports = fields.[15] |> (function | "n" -> 0 | "y" -> 1| _ -> 2) 
+            exportadministrationactsouthafrica = fields.[16] |> (function | "n" -> 0 | "y" -> 1| _ -> 2)
+            cls = fields.[0] |> (fun x -> 
+                 match x with
+                 | "democrat" -> Democrat // if democrat then Democrat
+                 | "republican" -> Republican // ...
+                 | _ -> Republican    // if it's anything else then make it a democrat (I need a default case)
+             )
+        }
+    )
+    |>Seq.cache //Due to the large number of datapoints we're caching the values so we don't redo the work above every time we look at trainingDataSet (saves ~1s)
+
+
 let sw = System.Diagnostics.Stopwatch.StartNew ()
-Seq.init 100 (fun k -> printfn "Working on %d..." (k+1); doKFold 10 trainingDataSet)
+Seq.init 100 (fun k -> printfn "Working on %d..." (k+1); doKFold 10  trainingDataSet)
 |>Seq.average
 |>printfn "Average Loss: %f"
 sw.Stop()
 printfn "%A" sw.Elapsed
 
-// doKFold 10 trainingDataSet
+//Average error: 10.0229% +/- ~0.005%
+//time: 00:00:13.3191 
 
-//Runs in ~ 00:00:12.7873
-//The average score of 100 runs lies around 0.1004; an error of  10.04% (with k = 10)
+
+sw.Start ()
+Seq.init 100 (fun k -> printfn "Working on %d..." (k+1); doKFold 10 (newShuffledTrainingDataSet ()))
+|>Seq.average
+|>printfn "Average Loss: %f"
+sw.Stop()
+printfn "%A" sw.Elapsed
+ 
+//Average error: 10.0911% +/- ~0.06%
+//time: 00:00:42.2608
