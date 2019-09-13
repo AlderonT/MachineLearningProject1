@@ -143,7 +143,7 @@ let doKFold k (dataSet:Data seq)=           //This is where we do the k-folding 
             |> Seq.collect snd              //now we grab the seqence from the tuple
         applyKFold trainingSet validationSet//Finally lets apply our function above "applyKFold" to our training set and validation set
     )
-    |> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
+    //|> Seq.mapi (fun i x -> printfn "i = %A loss: %A" i x; x)   //Just printing the % of failures for each subset (debuging code)  ////DEBUG Remove before submission
     |> Seq.average                          //the result is a seq of floats so we'll just get the average our % failuresto give us a result to our k-fold analysis as the accuracy of our algorithm
 
 ////
@@ -174,8 +174,91 @@ let trainingDataSet =
         }
     )
 
-//classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
-doKFold 10 trainingDataSet
+let newShuffledTrainingDataSet () = 
+    let shuffleAttributes () =                                                                  //This will generate a verson of the data that shuffles 10% of the attributes
+        let workingData =                                                                       //We're getting the data we will work with
+            System.IO.File.ReadAllLines(@"E:\Project 1\Data\1\breast-cancer-wisconsin.data")                      //get the data from file (yes this needs to match a directory that can read it)
+            |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim()))   //split the lines on the commas
+            |> Seq.map (fun sa ->                                                               //now we are taking each value and...
+                let i = sa.[0]                                                                  //the first value gets to be an ID
+                let cls = sa.[sa.Length-1]                                                      //the last value gets to be a CLS
+                let attribs = sa |> Seq.skip 1 |> Seq.take (sa.Length-2) |> Seq.toArray         //We take everything else, drop the first and last values and make the result into an array
+                (i,cls),attribs                                                                 //we are making a tuple of a tuple here 
+            )
+            |>Seq.toArray                                                                       //making the sequence into an array so we don't recalculate every time we call workingData
 
-//As things stand right now, executing everything you will get a number between 0. and 1.0 (though most numbers lie between 0.0 and 0.1 with an average ~0.02) //This is a good number 2% is a low fail rate
-//This result gives the average % of failures for all validation sets. 
+        let shuffle (data:string [] []) attr=                                       //this will shuffle the attribute "attr" in the string array data
+            let mutable i = 0                                                       //we are doing this imperitvely as a show of force (this is how you make a mutable value)
+            let attributes = ResizeArray (data |> Seq.map (fun xs -> xs.[attr]))    //we are making an array of the values from data's 'attr'th attribute array
+            let rnd = System.Random()                                               //make our randomNumberGenerator
+            while attributes.Count>0 do                                             //while we have attributes...
+                let j = rnd.Next(0,attributes.Count)                                //get a random index in attributes
+                let v = attributes.[j]                                              //assign v the value of the j'th attribute out of attributes
+                attributes.RemoveAt(j)                                              //remove the j'th element from attributes
+                data.[i].[attr] <- v                                                //replace the value of the i'th data point's 'attr'th attribute (this effects the actual value of data outside the function)
+                i <- i+1                                                            //increment i
+
+        
+        let data = workingData |>Array.map snd                                                  //defining data as the attribute array from working Data
+        let modifyCount = (workingData.[0]|> snd |> Array.length |> float)*0.1 |> ceil |> int   //this is the count of modifiable attributes (literally the length of attributes*0.1 rounded up)
+        let attribsCount = (workingData.[0]|> snd |> Array.length)                              //this is the number of actual attributes
+        let rnd = System.Random()                                                               //make a randomNumberGenerator
+        let idxs = ResizeArray([0..(attribsCount-1)])                                           //we are making a mutable list of indicies 
+        List.init modifyCount (fun _ ->                                                         //make a new list with magnitude of modify count (the number of elements we are shuffling)
+            let j = rnd.Next(0,idxs.Count)                                                      //get a random index from idxs
+            let i = idxs.[j]                                                                    //let i be the random index
+            idxs.RemoveAt(j)                                                                    //we shall remove said index from idxs (so we don't choose it again)
+            i                                                                                   //and add it to our list
+        )                                                                                       ////This randomly chooses the attribute numbers we're going to shuffle
+        |>Seq.iter (shuffle data)                                                               //we now iter through this list of indecies and shuffle the data at the index (This shuffling modifies the actual values of data)
+        Seq.zip workingData data                                                                //then we make a tuple of the working data and the shuffled data
+        |>Seq.map (fun (((i, cls),oldData),newData) ->                                          //Then we take the form ((string,string),string[],string[])
+            seq {yield i; yield! newData; yield cls} |> String.concat "," )                     //and convert it into one long sequence of strings which we immediately concat with ','
+
+    shuffleAttributes ()                                                                        //we start with the shuffled values this time
+    |> Seq.map (fun line -> line.Split(',') |> Array.map (fun value -> value.Trim())) // this give you an array of elements from the comma seperated fields. We trim to make sure that any white space is removed.
+    |> Seq.filter (Seq.exists(fun f -> f="?") >> not)   //This filters out all lines that contain a "?"
+    |> Seq.map (fun fields ->   //This will map the lines to objects returning a seqence of datapoints (or a DataSet as defined above)
+        {
+            id = fields.[0] |> System.Int32.Parse
+            clumpT = fields.[1] |> System.Int32.Parse
+            cellsizeuniform = fields.[2] |> System.Int32.Parse// 1 - 10
+            cellshapeuniform = fields.[3] |> System.Int32.Parse // 1 - 10
+            margadhesion = fields.[4] |> System.Int32.Parse // 1 - 10
+            SECS = fields.[5] |> System.Int32.Parse // 1 - 10
+            barenuclei = fields.[6] |> System.Int32.Parse // 1 - 10
+            blandchromatin = fields.[7] |> System.Int32.Parse // 1 - 10
+            normalnucleoli = fields.[8] |> System.Int32.Parse // 1 - 10
+            mitoses = fields.[9] |> System.Int32.Parse // 1 - 10
+            cls = fields.[10] |> (fun x -> 
+                 match x with
+                 | "2" -> Benign //if the string is a 2 it's benign
+                 | "4" -> Malignant // if it's a 4 it's malignant
+                 | _ -> Malignant // if it's anything else it's being malignant to me (I need a default case)
+             )
+        }
+    )
+
+
+//classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
+//classify trainingDataSet { id = 1018561; clumpT = 2; cellsizeuniform = 1; cellshapeuniform = 2; margadhesion = 1; SECS = 2; barenuclei = 1; blandchromatin = 3; normalnucleoli = 1; mitoses = 1; cls = Benign} // Run for result
+let sw = System.Diagnostics.Stopwatch.StartNew ()
+Seq.init 10 (fun k -> printfn "Working on %d..." (k+1); doKFold 10  trainingDataSet)
+|>Seq.average
+|>printfn "Average Loss: %f"
+sw.Stop()
+printfn "%A" sw.Elapsed
+
+//Average error: 2.4604% +/- ~0.3%
+//time: 00:01:14.7477 (only 10 repeats)
+
+
+sw.Start ()
+Seq.init 10 (fun k -> printfn "Working on %d..." (k+1); doKFold 10 (newShuffledTrainingDataSet ()))
+|>Seq.average
+|>printfn "Average Loss: %f"
+sw.Stop()
+printfn "%A" sw.Elapsed
+ 
+//Average error: 2.5473% +/- ~0.05%
+//time: 00:10:45.9402
